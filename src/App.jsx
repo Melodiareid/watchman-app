@@ -77,6 +77,7 @@ function TopBar({ onOpenMenu }) {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '12px 16px',
+      paddingTop: 'calc(12px + env(safe-area-inset-top))',
       background: '#14201a',
       borderBottom: '1px solid #2a3e2e',
     }}>
@@ -1137,6 +1138,7 @@ function App() {
           zIndex: 2500,
           overflowY: 'auto',
           padding: '20px',
+          paddingTop: 'calc(20px + env(safe-area-inset-top))',
         }}>
           <OverlayHeader title="Report an Incident" onBack={() => setScreen('map')} />
           <p className="anonymity-note">
@@ -1158,6 +1160,7 @@ function App() {
           zIndex: 2500,
           overflowY: 'auto',
           padding: '20px',
+          paddingTop: 'calc(20px + env(safe-area-inset-top))',
         }}>
           <OverlayHeader title="BOLO" onBack={() => { setScreen('map'); setSelectedBolo(null) }} />
 
