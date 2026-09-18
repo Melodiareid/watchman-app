@@ -3,11 +3,11 @@ import './App.css'
 import MapView from './MapView.jsx'
 import { supabase } from './supabaseClient.js'
 import SightingsMap from './SightingsMap.jsx'
-import WatchmanIcon from './assets/watchman-icon.png'
+import WatchmanLogo from './assets/watchman-logo.png'
 
 const SEVERITY_LEVELS = [
   { value: 'critical', label: 'Critical', icon: '🔴', color: '#e74c3c' },
-  { value: 'high', label: 'High', icon: '🟠', color: '#f0b84a' },
+  { value: 'high', label: 'High', icon: '🟠', color: '#d6d100' },
   { value: 'community', label: 'Community', icon: '🟡', color: '#f5c842' },
 ]
 
@@ -27,8 +27,8 @@ const LEGEND_ITEMS = [
   { color: '#c0392b', text: '🔴 Critical — Active shooter, armed robbery in progress' },
   { color: '#d35400', text: '🟠 High — Break-in, vehicle theft, shooting reported' },
   { color: '#f39c12', text: '🟡 Community — Suspicious activity, road incident' },
-  { color: '#c9922a', border: '1px solid #f0b84a', text: '🚨 BOLO — Stolen vehicle broadcast, island-wide' },
-  { color: '#3a9e68', text: '📍 Your current location' },
+  { color: '#FF7A33', border: '1px solid #FF7A33', text: '🚨 BOLO — Stolen vehicle broadcast, island-wide' },
+  { color: '#00947C', text: '📍 Your current location' },
 ]
 
 const HOW_TO_USE = [
@@ -72,86 +72,62 @@ function getDistanceInMeters(lat1, lng1, lat2, lng2) {
 function TopBar({ onOpenMenu }) {
   return (
     <div style={{
-      flexShrink: 0,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1500,
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '12px 16px',
-      paddingTop: 'calc(12px + env(safe-area-inset-top))',
-      background: '#14201a',
-      borderBottom: '1px solid #2a3e2e',
+      justifyContent: 'flex-start',
+      padding: '10px 16px 28px',
+      paddingTop: 'calc(10px + env(safe-area-inset-top))',
+      background: 'linear-gradient(180deg, var(--bg) 0%, rgba(17,24,35,0.75) 55%, rgba(17,24,35,0) 100%)',
+      pointerEvents: 'none',
     }}>
-      <button
+      <div
         onClick={onOpenMenu}
         style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '10px',
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid #2a3e2e',
-          color: '#e8f0ea',
-          fontSize: '18px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          background: 'var(--chrome-fill)',
+          border: '1px solid var(--border-inverse)',
+          borderRadius: '18px',
+          padding: '8px 20px 8px 8px',
           cursor: 'pointer',
+          pointerEvents: 'auto',
         }}
       >
-        ☰
-      </button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <img src={WatchmanIcon} alt="Watchman" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-      <span style={{ color: '#e8f0ea', fontWeight: 700, letterSpacing: '1px', fontSize: '15px' }}>WATCHMAN</span>
+        <span
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-inverse)',
+            fontSize: '20px',
+            flexShrink: 0,
+          }}
+        >
+          ☰
+        </span>
+        <img
+          src={WatchmanLogo}
+          alt="Watchman — Neighborhood Watch"
+          style={{ height: '84px', width: 'auto', objectFit: 'contain' }}
+        />
       </div>
-      <div style={{ width: '38px' }} />
     </div>
   )
 }
 
-function ActionPills({ onOpenIncident, onOpenBolo }) {
-  return (
-    <div style={{
-      flexShrink: 0,
-      display: 'flex',
-      gap: '10px',
-      padding: '10px 16px',
-      background: '#14201a',
-      borderBottom: '1px solid #2a3e2e',
-    }}>
-      <button
-        onClick={onOpenIncident}
-        style={{
-          flex: 1,
-          padding: '12px',
-          borderRadius: '999px',
-          border: 'none',
-          background: '#c0392b',
-          color: '#fff',
-          fontSize: '14px',
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        🚨 Report Incident
-      </button>
-      <button
-        onClick={onOpenBolo}
-        style={{
-          flex: 1,
-          padding: '12px',
-          borderRadius: '999px',
-          border: 'none',
-          background: '#c9922a',
-          color: '#1a2a1e',
-          fontSize: '14px',
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        🚔 BOLO
-      </button>
-    </div>
-  )
-}
-
-function OverlayHeader({ title, onBack }) {
+function OverlayHeader({ title, onBack, onWhite }) {
+  const backBg = onWhite ? 'var(--bg2)' : 'var(--chrome-fill)'
+  const borderColor = onWhite ? 'var(--border)' : 'var(--border-inverse)'
+  const textColor = onWhite ? 'var(--text)' : 'var(--text-inverse)'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
       <span
@@ -159,16 +135,16 @@ function OverlayHeader({ title, onBack }) {
         style={{
           padding: '6px 14px',
           borderRadius: '20px',
-          background: 'rgba(26,42,30,0.9)',
-          border: '1px solid #2a3e2e',
+          background: backBg,
+          border: `1px solid ${borderColor}`,
           fontSize: '13px',
           cursor: 'pointer',
-          color: '#e8f0ea',
+          color: textColor,
         }}
       >
         ‹ Back
       </span>
-      <span style={{ color: '#e8f0ea', fontWeight: 700, fontSize: '15px' }}>{title}</span>
+      <span style={{ color: textColor, fontWeight: 700, fontSize: '15px' }}>{title}</span>
     </div>
   )
 }
@@ -189,7 +165,7 @@ function MenuOverlay({ onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#0f1a12',
+          background: 'var(--card)',
           width: '100%',
           maxHeight: '80vh',
           overflowY: 'auto',
@@ -198,7 +174,7 @@ function MenuOverlay({ onClose }) {
           padding: '20px',
         }}
       >
-        <OverlayHeader title="Menu" onBack={onClose} />
+        <OverlayHeader title="Menu" onBack={onClose} onWhite />
         <MapLegend />
         <div style={{ height: '16px' }} />
         <HowToUse />
@@ -216,13 +192,13 @@ function Toast({ toast }) {
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 4000,
-      background: 'rgba(58,158,104,0.97)',
+      background: 'rgba(0,148,124,0.97)',
       color: '#fff',
       padding: '12px 20px',
       borderRadius: '999px',
       fontSize: '14px',
       fontWeight: 600,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+      boxShadow: '0 8px 24px rgba(18,36,29,0.25)',
       maxWidth: '90%',
       textAlign: 'center',
     }}>
@@ -293,9 +269,9 @@ function LocationPrompt({ draftPin, onDropPin }) {
           style={{
             padding: '10px 14px',
             borderRadius: '10px',
-            border: '1px solid #2a3e2e',
-            background: 'rgba(255,255,255,0.06)',
-            color: '#e8f0ea',
+            border: '1px solid var(--border)',
+            background: 'rgba(0,148,124,0.06)',
+            color: 'var(--text)',
             fontSize: '13px',
             cursor: 'pointer',
           }}
@@ -526,9 +502,9 @@ function BoloForm({ draftPin, onDropPin, onSuccess }) {
             style={{
               padding: '10px 14px',
               borderRadius: '10px',
-              border: '1px solid #2a3e2e',
-              background: 'rgba(255,255,255,0.06)',
-              color: '#e8f0ea',
+              border: '1px solid var(--border)',
+              background: 'rgba(0,148,124,0.06)',
+              color: 'var(--text)',
               fontSize: '13px',
               cursor: 'pointer',
             }}
@@ -808,8 +784,8 @@ function BoloDetail({ bolo, onBack }) {
           style={{
             padding: '6px 14px',
             borderRadius: '20px',
-            background: 'rgba(26,42,30,0.9)',
-            border: '1px solid #2a3e2e',
+            background: 'rgba(255,255,255,0.9)',
+            border: '1px solid var(--border)',
             fontSize: '13px',
             cursor: 'pointer',
           }}
@@ -827,7 +803,7 @@ function BoloDetail({ bolo, onBack }) {
             padding: '8px 16px',
             borderRadius: '8px',
             border: 'none',
-            background: '#3a9e68',
+            background: '#00947C',
             color: '#fff',
             fontSize: '13px',
             fontWeight: 600,
@@ -945,7 +921,13 @@ function AlertBanner({ alert, onDismiss, onView }) {
         if (onView) onView(alert)
         onDismiss()
       }}
-      style={{ flexShrink: 0 }}
+      style={{
+        position: 'absolute',
+        top: 'calc(120px + env(safe-area-inset-top))',
+        left: '16px',
+        right: '16px',
+        zIndex: 1400,
+      }}
     >
       <span className="alert-icon">{alert.icon}</span>
       <span className="alert-text">{alert.text}</span>
@@ -1105,19 +1087,8 @@ function App() {
   }, [toast])
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#0f1a12' }}>
-      <TopBar onOpenMenu={() => setShowMenu(true)} />
-      <ActionPills
-        onOpenIncident={() => { setPinTarget('incident'); setScreen('incident') }}
-        onOpenBolo={() => { setPinTarget('bolo'); setScreen('bolo') }}
-      />
-      <AlertBanner
-        alert={alert}
-        onDismiss={() => setAlert(null)}
-        onView={(a) => { if (a.bolo) viewBoloFromAlert(a.bolo) }}
-      />
-
-      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+    <div style={{ height: '100vh', position: 'relative', overflow: 'hidden', background: 'var(--bg)' }}>
+      <div style={{ position: 'absolute', inset: 0 }}>
         <MapView
           myLocation={myLocation}
           reportingMode={reportingMode}
@@ -1125,8 +1096,17 @@ function App() {
           onMapClick={handleMapClick}
           onToggleReportMode={() => setReportingMode((r) => !r)}
           onSelectBolo={viewBoloFromAlert}
+          onOpenIncident={() => { setPinTarget('incident'); setScreen('incident') }}
+          onOpenBolo={() => { setPinTarget('bolo'); setScreen('bolo') }}
         />
       </div>
+
+      <TopBar onOpenMenu={() => setShowMenu(true)} />
+      <AlertBanner
+        alert={alert}
+        onDismiss={() => setAlert(null)}
+        onView={(a) => { if (a.bolo) viewBoloFromAlert(a.bolo) }}
+      />
 
       {showMenu && <MenuOverlay onClose={() => setShowMenu(false)} />}
 
@@ -1134,21 +1114,23 @@ function App() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: '#0f1a12',
+          background: 'var(--bg)',
           zIndex: 2500,
           overflowY: 'auto',
           padding: '20px',
           paddingTop: 'calc(20px + env(safe-area-inset-top))',
         }}>
           <OverlayHeader title="Report an Incident" onBack={() => setScreen('map')} />
-          <p className="anonymity-note">
-            🔒 Your report is anonymous — other users never see who submitted it.
-          </p>
-          <IncidentForm
-            draftPin={draftPin}
-            onDropPin={() => armPinDrop('incident')}
-            onSuccess={() => handleFormSuccess('Report submitted anonymously.')}
-          />
+          <div className="form-card">
+            <p className="anonymity-note">
+              🔒 Your report is anonymous — other users never see who submitted it.
+            </p>
+            <IncidentForm
+              draftPin={draftPin}
+              onDropPin={() => armPinDrop('incident')}
+              onSuccess={() => handleFormSuccess('Report submitted anonymously.')}
+            />
+          </div>
         </div>
       )}
 
@@ -1156,7 +1138,7 @@ function App() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: '#0f1a12',
+          background: 'var(--bg)',
           zIndex: 2500,
           overflowY: 'auto',
           padding: '20px',
@@ -1179,26 +1161,28 @@ function App() {
             </div>
           </div>
 
-          {boloView === 'submit' && (
-            <>
-              <p className="anonymity-note">
-                🔒 Your BOLO is anonymous — other users never see who submitted it.
-              </p>
-              <BoloForm
-                draftPin={draftPin}
-                onDropPin={() => armPinDrop('bolo')}
-                onSuccess={() => handleFormSuccess('BOLO broadcast island-wide.')}
-              />
-            </>
-          )}
+          <div className="form-card">
+            {boloView === 'submit' && (
+              <>
+                <p className="anonymity-note">
+                  🔒 Your BOLO is anonymous — other users never see who submitted it.
+                </p>
+                <BoloForm
+                  draftPin={draftPin}
+                  onDropPin={() => armPinDrop('bolo')}
+                  onSuccess={() => handleFormSuccess('BOLO broadcast island-wide.')}
+                />
+              </>
+            )}
 
-          {boloView === 'list' && (
-            selectedBolo ? (
-              <BoloDetail bolo={selectedBolo} onBack={() => setSelectedBolo(null)} />
-            ) : (
-              <BolosList onSelect={setSelectedBolo} />
-            )
-          )}
+            {boloView === 'list' && (
+              selectedBolo ? (
+                <BoloDetail bolo={selectedBolo} onBack={() => setSelectedBolo(null)} />
+              ) : (
+                <BolosList onSelect={setSelectedBolo} />
+              )
+            )}
+          </div>
         </div>
       )}
 

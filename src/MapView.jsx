@@ -48,7 +48,7 @@ function createPinIcon(severity, type) {
       border-radius: 50%;
       background: ${color};
       border: 2px solid rgba(255,255,255,0.4);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(18,36,29,0.15);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -68,7 +68,7 @@ function createBoloIcon() {
       border-radius: 50%;
       background: ${pinColors.bolo};
       border: 2px solid rgba(255,255,255,0.6);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(18,36,29,0.15);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -86,9 +86,9 @@ function createLocationIcon() {
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #3a9e68;
-      border: 3px solid rgba(255,255,255,0.9);
-      box-shadow: 0 0 0 6px rgba(58,158,104,0.25);
+      background: #00947C;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 6px rgba(0,148,124,0.25);
     "></div>`,
     iconSize: [20, 20],
     iconAnchor: [10, 10],
@@ -102,10 +102,10 @@ function createDraftPinIcon() {
       width: 32px;
       height: 32px;
       border-radius: 50% 50% 50% 0;
-      background: #f0b84a;
+      background: #FF7A33;
       border: 2px solid rgba(255,255,255,0.6);
       transform: rotate(-45deg);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(18,36,29,0.15);
     "></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 32],
@@ -179,7 +179,7 @@ function FollowMode({ myLocation, active }) {
   return null
 }
 
-function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleReportMode, onSelectBolo }) {
+function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleReportMode, onSelectBolo, onOpenIncident, onOpenBolo }) {
   const center = myLocation ? [myLocation.lat, myLocation.lng] : [17.9712, -76.7936]
   const [recenterSignal, setRecenterSignal] = useState(0)
 
@@ -364,20 +364,73 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
     : []
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-      <div style={{ position: 'absolute', top: '12px', left: '16px', right: '16px', zIndex: 1000 }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+
+      {reportingMode && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(120px + env(safe-area-inset-top))',
+          left: '16px',
+          right: '16px',
+          zIndex: 1000,
+          background: 'rgba(255,122,51,0.92)',
+          borderRadius: '10px',
+          padding: '8px 14px',
+          fontSize: '13px',
+          fontWeight: 600,
+          color: 'var(--text)',
+          textAlign: 'center',
+        }}>
+          Tap the map to drop a pin at the incident location
+        </div>
+      )}
+
+      <div style={{
+        position: 'absolute',
+        bottom: 'calc(16px + env(safe-area-inset-bottom))',
+        left: '16px',
+        right: '16px',
+        zIndex: 1000,
+      }}>
         {!directionsMode ? (
           <>
+            {searchResults.length > 0 && (
+              <div style={{
+                marginBottom: '6px',
+                background: 'var(--map-chrome-strong)',
+                border: '1px solid var(--border-inverse)',
+                borderRadius: '12px',
+                overflow: 'hidden',
+              }}>
+                {searchResults.map((result) => (
+                  <div
+                    key={result.place_id}
+                    onClick={() => handleSelectResult(result)}
+                    style={{
+                      padding: '10px 16px',
+                      fontSize: '13px',
+                      color: 'var(--text-inverse)',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid var(--border-inverse)',
+                    }}
+                  >
+                    {result.display_name}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{
-              background: 'rgba(26,42,30,0.95)',
-              border: '1px solid #2a3e2e',
+              background: 'var(--map-chrome)',
+              border: '1px solid var(--border-inverse)',
               borderRadius: '14px',
               padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              boxShadow: 'var(--shadow)',
             }}>
               <span>🔍</span>
               <input
@@ -389,32 +442,45 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                   background: 'none',
                   border: 'none',
                   outline: 'none',
-                  color: '#e8f0ea',
+                  color: 'var(--text-inverse)',
                   fontSize: '14px',
                   flex: 1,
                 }}
               />
             </div>
+          </>
+        ) : !routeCoords ? (
+          <>
+            {routeError && (
+              <div style={{ marginBottom: '6px', padding: '10px 16px', fontSize: '13px', color: '#e74c3c', background: 'var(--map-chrome-strong)', borderRadius: '10px' }}>
+                {routeError}
+              </div>
+            )}
 
-            {searchResults.length > 0 && (
+            {routeLoading && (
+              <div style={{ marginBottom: '6px', padding: '10px 16px', fontSize: '13px', color: 'var(--text-inverse)', background: 'var(--map-chrome-strong)', borderRadius: '10px' }}>
+                Calculating route…
+              </div>
+            )}
+
+            {destResults.length > 0 && (
               <div style={{
-                marginTop: '6px',
-                background: 'rgba(26,42,30,0.98)',
-                border: '1px solid #2a3e2e',
+                marginBottom: '6px',
+                background: 'var(--map-chrome-strong)',
+                border: '1px solid var(--border-inverse)',
                 borderRadius: '12px',
                 overflow: 'hidden',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               }}>
-                {searchResults.map((result) => (
+                {destResults.map((result) => (
                   <div
                     key={result.place_id}
-                    onClick={() => handleSelectResult(result)}
+                    onClick={() => handleSelectDestination(result)}
                     style={{
                       padding: '10px 16px',
                       fontSize: '13px',
-                      color: '#e8f0ea',
+                      color: 'var(--text-inverse)',
                       cursor: 'pointer',
-                      borderBottom: '1px solid #2a3e2e',
+                      borderBottom: '1px solid var(--border-inverse)',
                     }}
                   >
                     {result.display_name}
@@ -422,18 +488,16 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                 ))}
               </div>
             )}
-          </>
-        ) : !routeCoords ? (
-          <>
+
             <div style={{
-              background: 'rgba(26,42,30,0.95)',
-              border: '1px solid #2a3e2e',
+              background: 'var(--map-chrome)',
+              border: '1px solid var(--border-inverse)',
               borderRadius: '14px',
               padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              boxShadow: 'var(--shadow)',
             }}>
               <span>🚗</span>
               <input
@@ -445,70 +509,31 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                   background: 'none',
                   border: 'none',
                   outline: 'none',
-                  color: '#e8f0ea',
+                  color: 'var(--text-inverse)',
                   fontSize: '14px',
                   flex: 1,
                 }}
               />
             </div>
-
-            {destResults.length > 0 && (
-              <div style={{
-                marginTop: '6px',
-                background: 'rgba(26,42,30,0.98)',
-                border: '1px solid #2a3e2e',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              }}>
-                {destResults.map((result) => (
-                  <div
-                    key={result.place_id}
-                    onClick={() => handleSelectDestination(result)}
-                    style={{
-                      padding: '10px 16px',
-                      fontSize: '13px',
-                      color: '#e8f0ea',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #2a3e2e',
-                    }}
-                  >
-                    {result.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {routeLoading && (
-              <div style={{ marginTop: '6px', padding: '10px 16px', fontSize: '13px', color: '#e8f0ea' }}>
-                Calculating route…
-              </div>
-            )}
-
-            {routeError && (
-              <div style={{ marginTop: '6px', padding: '10px 16px', fontSize: '13px', color: '#e74c3c' }}>
-                {routeError}
-              </div>
-            )}
           </>
         ) : (
           <div style={{
-            background: 'rgba(26,42,30,0.95)',
-            border: '1px solid #2a3e2e',
+            background: 'var(--map-chrome)',
+            border: '1px solid var(--border-inverse)',
             borderRadius: '14px',
             padding: '10px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '10px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            boxShadow: 'var(--shadow)',
           }}>
             <div>
-              <div style={{ color: '#e8f0ea', fontSize: '14px', fontWeight: 600 }}>
+              <div style={{ color: 'var(--text-inverse)', fontSize: '14px', fontWeight: 600 }}>
                 {routeInfo.distanceMiles} mi · {routeInfo.durationMinutes} min
               </div>
               {routeAlerts.length > 0 && (
-                <div style={{ color: '#f0b84a', fontSize: '11px', marginTop: '2px' }}>
+                <div style={{ color: 'var(--gold)', fontSize: '11px', marginTop: '2px' }}>
                   ⚠️ {routeAlerts.length} report{routeAlerts.length > 1 ? 's' : ''} on route
                 </div>
               )}
@@ -521,7 +546,7 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                     padding: '8px 14px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: '#3a9e68',
+                    background: '#00947C',
                     color: '#fff',
                     fontSize: '13px',
                     fontWeight: 600,
@@ -552,9 +577,9 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                 style={{
                   padding: '8px 10px',
                   borderRadius: '8px',
-                  border: '1px solid #2a3e2e',
+                  border: '1px solid var(--border-inverse)',
                   background: 'transparent',
-                  color: '#e8f0ea',
+                  color: 'var(--text-inverse)',
                   fontSize: '13px',
                   cursor: 'pointer',
                 }}
@@ -566,28 +591,48 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
         )}
       </div>
 
-      {reportingMode && (
-        <div style={{
-          position: 'absolute',
-          top: '64px',
-          left: '16px',
-          right: '16px',
-          zIndex: 1000,
-          background: 'rgba(240,184,74,0.95)',
-          borderRadius: '10px',
-          padding: '8px 14px',
-          fontSize: '13px',
-          fontWeight: 600,
-          color: '#1a2a1e',
-          textAlign: 'center',
-        }}>
-          Tap the map to drop a pin at the incident location
-        </div>
-      )}
+      <div style={{
+        position: 'absolute',
+        top: 'calc(120px + env(safe-area-inset-top))',
+        right: '16px',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}>
+        <button
+          onClick={onOpenIncident}
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'rgba(17,24,35,0.5)',
+            border: '1px solid var(--border-inverse)',
+            fontSize: '18px',
+            cursor: 'pointer',
+          }}
+        >
+          🚨
+        </button>
+        <button
+          onClick={onOpenBolo}
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'rgba(17,24,35,0.5)',
+            border: '1px solid var(--border-inverse)',
+            fontSize: '18px',
+            cursor: 'pointer',
+          }}
+        >
+          🚔
+        </button>
+      </div>
 
       <div style={{
         position: 'absolute',
-        bottom: '16px',
+        bottom: 'calc(84px + env(safe-area-inset-bottom))',
         right: '16px',
         zIndex: 1000,
         display: 'flex',
@@ -603,9 +648,9 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
             width: '44px',
             height: '44px',
             borderRadius: '12px',
-            background: directionsMode ? '#2980b9' : 'rgba(26,42,30,0.95)',
-            border: '1px solid #2a3e2e',
-            color: '#e8f0ea',
+            background: directionsMode ? '#2980b9' : 'var(--map-chrome)',
+            border: '1px solid var(--border-inverse)',
+            color: 'var(--text-inverse)',
             fontSize: '18px',
             cursor: 'pointer',
           }}
@@ -619,8 +664,8 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
             width: '44px',
             height: '44px',
             borderRadius: '12px',
-            background: 'rgba(26,42,30,0.95)',
-            border: '1px solid #2a3e2e',
+            background: 'var(--map-chrome)',
+            border: '1px solid var(--border-inverse)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -630,12 +675,12 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
-              stroke={myLocation ? '#e8f0ea' : '#5a6a5e'}
+              stroke={myLocation ? 'var(--text-inverse)' : '#9fb0a6'}
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="12" cy="9" r="2.5" stroke="#3a9e68" strokeWidth="1.5" />
+            <circle cx="12" cy="9" r="2.5" stroke="#00947C" strokeWidth="1.5" />
           </svg>
         </button>
         <button
@@ -644,9 +689,9 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
             width: '44px',
             height: '44px',
             borderRadius: '12px',
-            background: reportingMode ? '#f0b84a' : 'rgba(26,42,30,0.95)',
-            border: '1px solid #2a3e2e',
-            color: reportingMode ? '#1a2a1e' : '#e8f0ea',
+            background: reportingMode ? '#FF7A33' : 'var(--map-chrome)',
+            border: '1px solid var(--border-inverse)',
+            color: reportingMode ? 'var(--text)' : 'var(--text-inverse)',
             fontSize: '18px',
             cursor: 'pointer',
           }}
@@ -661,8 +706,8 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
         style={{ height: '100%', width: '100%', borderRadius: '16px', cursor: reportingMode ? 'crosshair' : '' }}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
         <MapClickHandler reportingMode={reportingMode} onMapClick={onMapClick} />
@@ -724,8 +769,8 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
                       padding: '6px 10px',
                       borderRadius: '6px',
                       border: 'none',
-                      background: '#c9922a',
-                      color: '#1a2a1e',
+                      background: 'var(--gold)',
+                      color: 'var(--text)',
                       fontWeight: 600,
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -738,6 +783,9 @@ function MapView({ myLocation, reportingMode, draftPin, onMapClick, onToggleRepo
             </Marker>
           ))}
       </MapContainer>
+
+      <div className="map-fade-overlay" />
+      </div>
     </div>
   )
 }
